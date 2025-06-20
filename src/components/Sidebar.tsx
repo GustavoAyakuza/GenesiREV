@@ -2,17 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, PieChart, Target, TrendingUp, MessageSquare, Mic, LogOut, Sparkles, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useWishes } from '../hooks/useWishes';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Switch } from './ui/switch';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { PlusCircle, Bell, Trash2 } from 'lucide-react';
+import { Wish } from '../types';
+import { useToast } from "../hooks/use-toast";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { 
+    wishes, 
+    isLoading: loadingWishes, 
+    error: wishError, 
+    deleteWish, 
+    toggleWishNotification 
+  } = useWishes();
   const [openWishDialog, setOpenWishDialog] = useState(false);
-  const [wishes, setWishes] = useState([]);
-  const [loadingWishes, setLoadingWishes] = useState(false);
-  const [wishError, setWishError] = useState('');
 
   const navigationItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -30,25 +42,6 @@ const Sidebar = () => {
     { icon: Mic, label: 'Conectar à Alexa', action: () => console.log('Alexa integration') },
   ];
 
-  const fetchWishes = async () => {
-    setLoadingWishes(true);
-    setWishError('');
-    try {
-      const res = await fetch('/api/wishes', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Erro ao buscar desejos');
-      const data = await res.json();
-      setWishes(data.wishes || []);
-    } catch (err) {
-      setWishError('Erro ao buscar desejos');
-    } finally {
-      setLoadingWishes(false);
-    }
-  };
-
-  useEffect(() => {
-    if (openWishDialog) fetchWishes();
-  }, [openWishDialog]);
-
   const handleNavigation = (path: string) => {
     navigate(path);
   };
@@ -58,17 +51,12 @@ const Sidebar = () => {
     navigate('/');
   };
 
-  const handleToggleNotificado = async (wishId, currentValue) => {
-    try {
-      await fetch(`/api/wishes/${wishId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notificado: !currentValue })
-      });
-      fetchWishes(); // Atualiza a lista após alteração
-    } catch (err) {
-      // Pode adicionar um toast de erro se quiser
-    }
+  const handleToggleNotificado = async (wishId: string, currentValue: boolean) => {
+    await toggleWishNotification(wishId, currentValue);
+  };
+
+  const handleDeleteWish = async (wishId: string) => {
+    await deleteWish(wishId);
   };
 
   return (

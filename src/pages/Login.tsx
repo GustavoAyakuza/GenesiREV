@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Sparkles, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,37 +12,25 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
       toast({
-        title: "Erro",
+        title: "Atenção",
         description: "Por favor, preencha todos os campos.",
         variant: "destructive"
       });
       return;
     }
 
-    setIsLoading(true);
-    
-    const success = await login(email, password);
-    
+    const success = await login(email, password, setIsLoading);
+
     if (success) {
-      toast({
-        title: "Sucesso!",
-        description: "Login realizado com sucesso.",
-      });
-    } else {
-      toast({
-        title: "Erro",
-        description: "Email ou senha incorretos.",
-        variant: "destructive"
-      });
+      navigate('/dashboard');
     }
-    
-    setIsLoading(false);
   };
 
   return (

@@ -1,50 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, PiggyBank, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import React from 'react';
+import { DollarSign, PiggyBank, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import MetricCard from '../components/MetricCard';
 import AIInsights from '../components/AIInsights';
-import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
-
-const API_BASE_URL = 'https://0837-2804-7f0-845d-ae81-7821-6145-fcac-655a.ngrok-free.app';
+import { useFinanceData } from '../hooks/useFinanceData';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  const [entradas, setEntradas] = useState(0);
-  const [saidas, setSaidas] = useState(0);
-  const [saldo, setSaldo] = useState(0);
-  // Investimentos pode ser implementado depois
-
-  useEffect(() => {
-    console.log('user:', user);
-    if (user && user.whatsapp) {
-      const url = `${API_BASE_URL}/api/finance/saldo/${user.whatsapp}`;
-      console.log('Fazendo requisição para:', url);
-      const fetchData = async () => {
-        try {
-          const res = await axios.get(url, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true'
-            }
-          });
-          setEntradas(res.data.entradas || 0);
-          setSaidas(res.data.saidas || 0);
-          setSaldo(res.data.saldo || 0);
-          console.log('Dados recebidos:', res.data);
-        } catch (err) {
-          setEntradas(0);
-          setSaidas(0);
-          setSaldo(0);
-          console.error('Erro ao buscar dados financeiros:', err);
-        }
-      };
-      fetchData();
-    }
-  }, [user]);
+  const { financeData, isLoading, error } = useFinanceData();
 
   const metrics = [
     {
       title: 'Entradas',
-      value: `R$ ${entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${financeData.entradas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: '+0%',
       trend: 'up' as const,
       icon: ArrowUpCircle,
@@ -52,7 +19,7 @@ const Dashboard = () => {
     },
     {
       title: 'Saídas',
-      value: `R$ ${saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${financeData.saidas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: '0%',
       trend: 'down' as const,
       icon: ArrowDownCircle,
@@ -60,7 +27,7 @@ const Dashboard = () => {
     },
     {
       title: 'Saldo Atual',
-      value: `R$ ${saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${financeData.saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: '+0%',
       trend: 'up' as const,
       icon: DollarSign,
@@ -75,6 +42,10 @@ const Dashboard = () => {
       color: 'text-purple-400'
     }
   ];
+
+  if (error) {
+    return <div className="text-red-500 text-center">Erro ao carregar dados do dashboard: {error}</div>;
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
@@ -92,18 +63,22 @@ const Dashboard = () => {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {metrics.map((metric, index) => (
-          <MetricCard
-            key={metric.title}
-            title={metric.title}
-            value={metric.value}
-            change={metric.change}
-            trend={metric.trend}
-            icon={metric.icon}
-            color={metric.color}
-            delay={index * 100}
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-[126px] w-full rounded-xl" />
+            ))
+          : metrics.map((metric, index) => (
+              <MetricCard
+                key={metric.title}
+                title={metric.title}
+                value={metric.value}
+                change={metric.change}
+                trend={metric.trend}
+                icon={metric.icon}
+                color={metric.color}
+                delay={index * 100}
+              />
+            ))}
       </div>
 
       {/* AI Insights */}

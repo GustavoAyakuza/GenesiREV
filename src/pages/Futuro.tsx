@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Target, Calendar, DollarSign, Plus, Home, Plane, Briefcase, GraduationCap } from 'lucide-react';
 
