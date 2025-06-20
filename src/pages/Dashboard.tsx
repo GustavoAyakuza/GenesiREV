@@ -14,6 +14,28 @@ const Dashboard = () => {
   console.log('[Dashboard] Erro:', error);
   // ---- FIM DO CÓDIGO DE DEBUG ----
 
+  // Se houver um erro, mostre a mensagem de erro.
+  if (error) {
+    return <div className="text-red-500 text-center">Erro ao carregar dados do dashboard: {error}</div>;
+  }
+  
+  // Se estiver carregando ou os dados ainda não chegaram, mostre os Skeletons.
+  // Isso previne o erro de tentar acessar `financeData.entradas` quando `financeData` é nulo.
+  if (isLoading || !financeData) {
+    return (
+      <div className="space-y-6 sm:space-y-8 animate-fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="h-[126px] w-full rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-[200px] w-full rounded-xl" />
+        <Skeleton className="h-[100px] w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  // Apenas crie as métricas quando tiver certeza que `financeData` existe.
   const metrics = [
     {
       title: 'Entradas',
@@ -49,10 +71,6 @@ const Dashboard = () => {
     }
   ];
 
-  if (error) {
-    return <div className="text-red-500 text-center">Erro ao carregar dados do dashboard: {error}</div>;
-  }
-
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in">
       {/* Header */}
@@ -69,22 +87,18 @@ const Dashboard = () => {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {isLoading
-          ? Array.from({ length: 4 }).map((_, index) => (
-              <Skeleton key={index} className="h-[126px] w-full rounded-xl" />
-            ))
-          : metrics.map((metric, index) => (
-              <MetricCard
-                key={metric.title}
-                title={metric.title}
-                value={metric.value}
-                change={metric.change}
-                trend={metric.trend}
-                icon={metric.icon}
-                color={metric.color}
-                delay={index * 100}
-              />
-            ))}
+        {metrics.map((metric, index) => (
+            <MetricCard
+              key={metric.title}
+              title={metric.title}
+              value={metric.value}
+              change={metric.change}
+              trend={metric.trend}
+              icon={metric.icon}
+              color={metric.color}
+              delay={index * 100}
+            />
+          ))}
       </div>
 
       {/* AI Insights */}
