@@ -7,6 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
   const { financeData, isLoading, error } = useFinanceData();
+  
+  // ---- INÍCIO DO CÓDIGO DE DEBUG ----
+  console.log('[Dashboard] Dados financeiros recebidos:', financeData);
+  console.log('[Dashboard] Está carregando:', isLoading);
+  console.log('[Dashboard] Erro:', error);
+  // ---- FIM DO CÓDIGO DE DEBUG ----
 
   const metrics = [
     {
