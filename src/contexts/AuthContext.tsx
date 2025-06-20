@@ -23,14 +23,9 @@ export const useAuth = () => {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// ---- INÍCIO DO CÓDIGO DE DEBUG ----
-console.log("API_URL Carregada:", API_URL);
-
 if (!API_URL) {
-  console.error("ERRO CRÍTICO: A variável de ambiente VITE_API_URL não está definida!");
-  // Em um app real, poderíamos mostrar uma mensagem de erro para o usuário aqui
+  throw new Error("ERRO CRÍTICO: A variável de ambiente VITE_API_URL não está definida! Verifique as configurações do projeto na Vercel.");
 }
-// ---- FIM DO CÓDIGO DE DEBUG ----
 
 interface AuthProviderProps {
   children: ReactNode;
