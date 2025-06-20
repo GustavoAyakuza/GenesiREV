@@ -30,7 +30,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const API_BASE_URL = 'https://de6f-2804-7f0-845d-ae81-7821-6145-fcac-655a.ngrok-free.app';
+const API_BASE_URL = 'https://0837-2804-7f0-845d-ae81-7821-6145-fcac-655a.ngrok-free.app';
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUserState] = useState<User | null>(() => {

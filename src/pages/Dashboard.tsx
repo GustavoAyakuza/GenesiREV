@@ -5,7 +5,7 @@ import AIInsights from '../components/AIInsights';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://de6f-2804-7f0-845d-ae81-7821-6145-fcac-655a.ngrok-free.app';
+const API_BASE_URL = 'https://0837-2804-7f0-845d-ae81-7821-6145-fcac-655a.ngrok-free.app';
 
 const Dashboard = () => {
   const { user } = useAuth();
