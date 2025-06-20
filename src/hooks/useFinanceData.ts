@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -14,7 +14,6 @@ interface UseFinanceDataReturn {
   financeData: FinanceData | null;
   isLoading: boolean;
   error: string | null;
-  fetchFinanceData: () => void;
 }
 
 export const useFinanceData = (): UseFinanceDataReturn => {
@@ -23,36 +22,38 @@ export const useFinanceData = (): UseFinanceDataReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFinanceData = useCallback(async () => {
-    if (!user || !user.id) {
+  useEffect(() => {
+    const fetchFinanceData = async () => {
+      // Se não houver usuário, não faz nada.
+      if (!user) {
         setIsLoading(false);
         return;
+      }
+
+      // Inicia o carregamento
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get(`${API_URL}/api/finance/saldo/${user.id}`);
+        setFinanceData(response.data);
+      } catch (err) {
+        // Define uma mensagem de erro clara
+        const axiosError = err as AxiosError<{ message: string }>;
+        const errorMessage = axiosError.response?.data?.message || 'Falha ao buscar dados financeiros.';
+        setError(errorMessage);
+        console.error("Erro em useFinanceData:", err);
+        setFinanceData(null);
+      } finally {
+        // Finaliza o carregamento
+        setIsLoading(false);
+      }
     };
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get(`${API_URL}/api/finance/saldo/${user.id}`);
-      setFinanceData(response.data);
-    } catch (err) {
-      setError('Falha ao buscar dados financeiros.');
-      console.error(err);
-      setFinanceData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+    fetchFinanceData();
+  }, [user]); // A dependência é apenas o 'user'. O fetch é re-executado quando o usuário muda.
 
-  useEffect(() => {
-    if (user) {
-      fetchFinanceData();
-    } else {
-      setFinanceData(null);
-      setIsLoading(false);
-    }
-  }, [user, fetchFinanceData]);
-
-  return { financeData, isLoading, error, fetchFinanceData };
+  return { financeData, isLoading, error };
 };
 
 // /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/
