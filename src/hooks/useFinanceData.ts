@@ -11,7 +11,7 @@ interface FinanceData {
 }
 
 interface UseFinanceDataReturn {
-  financeData: FinanceData;
+  financeData: FinanceData | null;
   isLoading: boolean;
   error: string | null;
   fetchFinanceData: () => void;
@@ -19,30 +19,38 @@ interface UseFinanceDataReturn {
 
 export const useFinanceData = (): UseFinanceDataReturn => {
   const { user } = useAuth();
-  const [financeData, setFinanceData] = useState<FinanceData>({ entradas: 0, saidas: 0, saldo: 0 });
-  const [isLoading, setIsLoading] = useState(false);
+  const [financeData, setFinanceData] = useState<FinanceData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFinanceData = useCallback(async () => {
-    if (!user || !user.whatsapp) return;
+    if (!user || !user.id) {
+        setIsLoading(false);
+        return;
+    };
 
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_URL}/api/finance/saldo/${user.whatsapp}`);
+      const response = await axios.get(`${API_URL}/api/finance/saldo/${user.id}`);
       setFinanceData(response.data);
     } catch (err) {
       setError('Falha ao buscar dados financeiros.');
       console.error(err);
-      setFinanceData({ entradas: 0, saidas: 0, saldo: 0 });
+      setFinanceData(null);
     } finally {
       setIsLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    fetchFinanceData();
-  }, [fetchFinanceData]);
+    if (user) {
+      fetchFinanceData();
+    } else {
+      setFinanceData(null);
+      setIsLoading(false);
+    }
+  }, [user, fetchFinanceData]);
 
   return { financeData, isLoading, error, fetchFinanceData };
 };
